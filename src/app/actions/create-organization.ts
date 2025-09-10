@@ -20,7 +20,7 @@ export async function createOrganizationAction(previousState: any, formData: For
     }
 
     try {
-        const res = await fetch(`http://localhost:3000/organizations`, {
+        const res = await fetch(`${process.env.API_BASE_URL}/organizations`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

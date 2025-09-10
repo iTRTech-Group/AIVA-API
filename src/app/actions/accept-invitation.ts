@@ -4,8 +4,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 
-
-
 export async function acceptInvitationAction(invitationId: string) {
     const session = await getServerSession(authOptions);
     const token = session?.accessToken;
@@ -17,7 +15,7 @@ export async function acceptInvitationAction(invitationId: string) {
 
 
     try {
-        const response = await fetch(`http://localhost:3000/profile/invitations/${invitationId}/accept`, {
+        const response = await fetch(`${process.env.API_BASE_URL}/profile/invitations/${invitationId}/accept`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

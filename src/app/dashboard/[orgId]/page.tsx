@@ -2,6 +2,8 @@ import Dashboard from "@/components/Dashboard";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
 
+const API_URL = process.env.API_BASE_URL;
+
 type ApiEntry = {
   id: string;
   status: string;
@@ -58,7 +60,7 @@ function mapApiDataToTimesheetEntries(apiData: ApiEntry[]): TimesheetEntry[] {
 async function getTimesheetData(token: string, ordId: string) {
   try {
     const response = await fetch(
-      `http://localhost:3000/organizations/${ordId}/executions`,
+      `${API_URL}/organizations/${ordId}/executions`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

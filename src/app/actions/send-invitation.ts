@@ -17,7 +17,7 @@ export async function sendInvitationAction(orgId: string, previousState: any, fo
     const role = formData.get('role') as string;
 
     try {
-        const res = await fetch(`http://localhost:3000/organizations/${orgId}/invitations`, {
+        const res = await fetch(`${process.env.API_BASE_URL}/organizations/${orgId}/invitations`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

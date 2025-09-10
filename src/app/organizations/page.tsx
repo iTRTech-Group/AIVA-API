@@ -11,6 +11,8 @@ type Organization = {
   name: string;
 };
 
+const API_URL = process.env.API_BASE_URL;
+
 type Invitation = {
   id: string;
   role: "MEMBER" | "ADMIN";
@@ -19,7 +21,7 @@ type Invitation = {
 
 async function getOrganizations(token: string): Promise<Organization[]> {
   try {
-    const response = await fetch("http://localhost:3000/organizations", {
+    const response = await fetch(`${API_URL}/organizations`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -39,7 +41,7 @@ async function getOrganizations(token: string): Promise<Organization[]> {
 
 async function getInvitations(token: string): Promise<Invitation[]> {
   try {
-    const response = await fetch("http://localhost:3000/profile/invitations", {
+    const response = await fetch(`${API_URL}/profile/invitations`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
