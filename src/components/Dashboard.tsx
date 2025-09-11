@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import StatCard from "@/components/StatCard";
 import DataFolder from "@/components/DataFolder";
-import { Clock, Users, Briefcase, Calendar, FolderKanban } from "lucide-react";
+import { Clock, Users, Briefcase, Calendar, Tag } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
@@ -38,6 +38,23 @@ const parseDate = (dateString: string): Date | null => {
   );
 };
 
+const RenderEntry = ({ entry }: { entry: TimesheetEntry }) => {
+  return (
+    <li key={entry.id} className="mb-2 text-gray-400">
+      <strong className="text-gray-300">
+        {entry.Data} - {entry.Nome} (
+        {entry.Cliente ? entry.Cliente : "Não Especificado"} / {entry.Projeto})
+        - ({entry.Minutos ? entry.Minutos : 0} min)
+      </strong>
+      <div className="pl-4 text-sm flex flex-col gap-1">
+        {entry.Descrição && <span>Descrição: {entry.Descrição}</span>}
+        {entry.Rubrica && <span>Rubrica: {entry.Rubrica}</span>}
+        {entry.Area && <span>Área: {entry.Area}</span>}
+      </div>
+    </li>
+  );
+};
+
 const RenderContent = ({
   entries,
   filter,
@@ -68,22 +85,7 @@ const RenderContent = ({
             >
               <ul>
                 {advogadoEntries.map((entry) => (
-                  <li key={entry.id} className="mb-1">
-                    <strong>
-                      {entry.Data} - {entry.Projeto}:
-                    </strong>
-                    {entry.Rubrica && (
-                      <span className="ml-2 bg-blue-900 text-blue-300 text-xs font-medium px-2 py-0.5 rounded">
-                        Rubrica: {entry.Rubrica}
-                      </span>
-                    )}
-                    {entry.Area && (
-                      <span className="ml-2 bg-purple-900 text-purple-300 text-xs font-medium px-2 py-0.5 rounded">
-                        Área: {entry.Area}
-                      </span>
-                    )}
-                    {entry.Descrição} ({entry.Minutos} min)
-                  </li>
+                  <RenderEntry key={entry.id} entry={entry} />
                 ))}
               </ul>
             </DataFolder>
@@ -116,22 +118,7 @@ const RenderContent = ({
             >
               <ul>
                 {clienteEntries.map((entry) => (
-                  <li key={entry.id} className="mb-1 text-gray-400">
-                    <strong className="text-gray-300">
-                      {entry.Data} - {entry.Nome} ({entry.Projeto}):
-                    </strong>
-                    {entry.Rubrica && (
-                      <span className="ml-2 bg-blue-900 text-blue-300 text-xs font-medium px-2 py-0.5 rounded">
-                        Rubrica: {entry.Rubrica}
-                      </span>
-                    )}
-                    {entry.Area && (
-                      <span className="ml-2 bg-purple-900 text-purple-300 text-xs font-medium px-2 py-0.5 rounded">
-                        Área: {entry.Area}
-                      </span>
-                    )}
-                    {entry.Descrição} ({entry.Minutos} min)
-                  </li>
+                  <RenderEntry key={entry.id} entry={entry} />
                 ))}
               </ul>
             </DataFolder>
@@ -170,22 +157,7 @@ const RenderContent = ({
             >
               <ul>
                 {dataEntries.map((entry) => (
-                  <li key={entry.id} className="mb-1">
-                    <strong>
-                      {entry.Nome} - {entry.Projeto}:
-                    </strong>
-                    {entry.Rubrica && (
-                      <span className="ml-2 bg-blue-900 text-blue-300 text-xs font-medium px-2 py-0.5 rounded">
-                        Rubrica: {entry.Rubrica}
-                      </span>
-                    )}
-                    {entry.Area && (
-                      <span className="ml-2 bg-purple-900 text-purple-300 text-xs font-medium px-2 py-0.5 rounded">
-                        Área: {entry.Area}
-                      </span>
-                    )}
-                    {entry.Descrição} ({entry.Minutos} min)
-                  </li>
+                  <RenderEntry key={entry.id} entry={entry} />
                 ))}
               </ul>
             </DataFolder>
@@ -195,9 +167,9 @@ const RenderContent = ({
     );
   }
 
-  if (filter === "projetos") {
+  if (filter === "rubricas") {
     const grouped = entries.reduce((acc, entry) => {
-      const key = entry.Projeto || "Não Especificado";
+      const key = entry.Rubrica || "Outras Atividades";
       if (!acc[key]) acc[key] = [];
       acc[key].push(entry);
       return acc;
@@ -205,35 +177,20 @@ const RenderContent = ({
 
     return (
       <div className="space-y-3">
-        {Object.entries(grouped).map(([projeto, projetoEntries]) => {
-          const totalMinutes = projetoEntries.reduce(
+        {Object.entries(grouped).map(([rubrica, rubricaEntries]) => {
+          const totalMinutes = rubricaEntries.reduce(
             (sum, e) => sum + e.Minutos,
             0
           );
           return (
             <DataFolder
-              key={projeto}
-              title={projeto}
+              key={rubrica}
+              title={rubrica}
               total={formatMinutesToHours(totalMinutes)}
             >
               <ul>
-                {projetoEntries.map((entry) => (
-                  <li key={entry.id} className="mb-1 text-gray-400">
-                    <strong className="text-gray-300">
-                      {entry.Data} - {entry.Nome} ({entry.Cliente}):
-                    </strong>
-                    {entry.Rubrica && (
-                      <span className="ml-2 bg-blue-900 text-blue-300 text-xs font-medium px-2 py-0.5 rounded">
-                        Rubrica: {entry.Rubrica}
-                      </span>
-                    )}
-                    {entry.Area && (
-                      <span className="ml-2 bg-purple-900 text-purple-300 text-xs font-medium px-2 py-0.5 rounded">
-                        Área: {entry.Area}
-                      </span>
-                    )}
-                    {entry.Descrição} ({entry.Minutos} min)
-                  </li>
+                {rubricaEntries.map((entry) => (
+                  <RenderEntry key={entry.id} entry={entry} />
                 ))}
               </ul>
             </DataFolder>
@@ -256,7 +213,7 @@ export default function Dashboard({ initialEntries }: DashboardProps) {
   const [filteredEntries, setFilteredEntries] = useState(initialEntries);
 
   const [activeFilter, setActiveFilter] = useState<
-    "advogados" | "clientes" | "projetos" | "registros"
+    "advogados" | "clientes" | "rubricas" | "registros"
   >("advogados");
 
   const stats = useMemo(() => {
@@ -266,13 +223,15 @@ export default function Dashboard({ initialEntries }: DashboardProps) {
     );
     const totalAdvogados = new Set(filteredEntries.map((e) => e.Nome)).size;
     const totalClientes = new Set(filteredEntries.map((e) => e.Cliente)).size;
-    const totalProjetos = new Set(filteredEntries.map((e) => e.Projeto)).size;
+    const totalRubricas = new Set(
+      filteredEntries.map((e) => e.Rubrica).filter(Boolean)
+    ).size;
     const totalRegistros = filteredEntries.length;
     return {
       totalMinutos,
       totalAdvogados,
       totalClientes,
-      totalProjetos,
+      totalRubricas,
       totalRegistros,
     };
   }, [filteredEntries]);
@@ -343,11 +302,11 @@ export default function Dashboard({ initialEntries }: DashboardProps) {
           onClick={() => setActiveFilter("clientes")}
         />
         <StatCard
-          title="Áreas"
-          value={stats.totalProjetos}
-          icon={<FolderKanban size={24} />}
-          isActive={activeFilter === "projetos"}
-          onClick={() => setActiveFilter("projetos")}
+          title="Rubricas"
+          value={stats.totalRubricas}
+          icon={<Tag size={24} />}
+          isActive={activeFilter === "rubricas"}
+          onClick={() => setActiveFilter("rubricas")}
         />
         <StatCard
           title="Registros"
