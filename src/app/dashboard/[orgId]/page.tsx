@@ -4,19 +4,19 @@ import { authOptions } from "../../api/auth/[...nextauth]/route";
 
 const API_URL = process.env.API_BASE_URL;
 
+type ResultDataItem = {
+  cliente: string | null;
+  projeto: string;
+  minutos: number | null;
+  descricao: string;
+  rubrica?: string;
+  area?: string;
+};
+
 type ApiEntry = {
   id: string;
-  status: string;
-  tokens_spent: number;
   executed_at: string;
-  result_data: {
-    cliente: string;
-    projeto: string;
-    minutos: number;
-    descricao: string;
-    rubrica?: string;
-    area?: string;
-  };
+  result_data: ResultDataItem | ResultDataItem[];
   executor_username: string;
 };
 
@@ -33,28 +33,55 @@ type TimesheetEntry = {
 };
 
 function mapApiDataToTimesheetEntries(apiData: ApiEntry[]): TimesheetEntry[] {
-  return apiData
-    .filter((item) => item.status === "SUCCESS" && item.result_data)
-    .map((item) => {
-      const date = new Date(item.executed_at);
-      const formattedDate = date.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+  // Usamos flatMap para "achatar" a estrutura. Para cada item da API,
+  // ele pode retornar um ou mais TimesheetEntry.
 
-      return {
-        id: item.id,
+  return apiData.flatMap((item) => {
+    const date = new Date(item.executed_at);
+    const formattedDate = date.toLocaleString("pt-BR", {});
+
+    // Garante que result_data não é nulo ou indefinido
+    const results = item.result_data;
+    if (!results) {
+      return []; // Retorna um array vazio para este item se não houver dados
+    }
+
+    // Verificamos se result_data é um array
+    if (Array.isArray(results)) {
+      // Se for um array, mapeamos cada sub-item para um TimesheetEntry completo
+      return results.map((entry, index) => ({
+        // Geramos um ID único para cada item do array, como você sugeriu
+        id: `${item.id}_${index}`,
         Nome: item.executor_username,
-        Cliente: item.result_data.cliente,
-        Projeto: item.result_data.projeto,
         Data: formattedDate,
-        Minutos: item.result_data.minutos,
-        Descrição: item.result_data.descricao,
-        Rubrica: item.result_data.rubrica,
-        Area: item.result_data.area,
-      };
-    });
+        // Dados do sub-item
+        Cliente: entry.cliente || "Não especificado",
+        Projeto: entry.projeto,
+        Minutos: entry.minutos || 0, // Garante que minutos seja um número
+        Descrição: entry.descricao,
+        Rubrica: entry.rubrica,
+        Area: entry.area,
+      }));
+    } else {
+      // Se não for um array, lidamos com o formato antigo (objeto único)
+      return [
+        {
+          id: item.id,
+          Nome: item.executor_username,
+          Data: formattedDate,
+          Cliente: results.cliente || "Não especificado",
+          Projeto: results.projeto,
+          Minutos: results.minutos || 0,
+          Descrição: results.descricao,
+          Rubrica: results.rubrica,
+          Area: results.area,
+        },
+      ];
+    }
+  });
+  // Adicionamos um filtro final para remover entradas que não são úteis
+  // (como a de "Descanso" que tinha minutos nulos)
+  //.filter((entry) => entry.Minutos > 0)
 }
 
 async function getTimesheetData(token: string, ordId: string) {

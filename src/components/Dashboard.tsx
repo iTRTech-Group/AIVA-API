@@ -209,6 +209,7 @@ interface DashboardProps {
 
 export default function Dashboard({ initialEntries }: DashboardProps) {
   const { data: session } = useSession();
+  console.log(initialEntries);
   const [allEntries, setAllEntries] = useState(initialEntries);
   const [filteredEntries, setFilteredEntries] = useState(initialEntries);
 

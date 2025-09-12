@@ -6,8 +6,26 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
 
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET }) as any;
 
+
+    if (token) {
+
+        const isExpired = Date.now() / 1000 > token.exp;
+
+        if (isExpired) {
+            console.log(`Token expirado em ${new Date(token.exp * 1000)}. Redirecionando para login.`);
+
+            // Se o token está expirado, forçamos o redirecionamento para o login.
+            // Criamos uma URL de login e invalidamos o cookie do token para limpar a sessão.
+            const loginUrl = new URL('/login', req.url);
+            const response = NextResponse.redirect(loginUrl);
+            response.cookies.delete('next-auth.session-token'); // Limpa o cookie principal
+            response.cookies.delete('next-auth.csrf-token'); // Limpa o cookie de CSRF
+
+            return response;
+        }
+    }
 
     const { pathname } = req.nextUrl;
 
