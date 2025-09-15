@@ -64,7 +64,7 @@ const parseDate = (dateString: string): Date | null => {
 };
 
 const RenderEntry = ({ entry }: { entry: TimesheetEntry }) => {
-  let formatedData =
+  const formatedData =
     entry.Data != "Sem Data"
       ? new Date(entry.Data).toLocaleString("pt-BR", {
           day: "2-digit",
