@@ -37,9 +37,6 @@ function mapApiDataToTimesheetEntries(apiData: ApiEntry[]): TimesheetEntry[] {
   // ele pode retornar um ou mais TimesheetEntry.
 
   return apiData.flatMap((item) => {
-    const date = new Date(item.executed_at);
-    const formattedDate = date.toLocaleString("pt-BR", {});
-
     // Garante que result_data não é nulo ou indefinido
     const results = item.result_data;
     if (!results) {
@@ -53,7 +50,7 @@ function mapApiDataToTimesheetEntries(apiData: ApiEntry[]): TimesheetEntry[] {
         // Geramos um ID único para cada item do array, como você sugeriu
         id: `${item.id}_${index}`,
         Nome: item.executor_username,
-        Data: formattedDate,
+        Data: item.executed_at,
         // Dados do sub-item
         Cliente: entry.cliente || "Não especificado",
         Projeto: entry.projeto,
@@ -68,7 +65,7 @@ function mapApiDataToTimesheetEntries(apiData: ApiEntry[]): TimesheetEntry[] {
         {
           id: item.id,
           Nome: item.executor_username,
-          Data: formattedDate,
+          Data: item.executed_at,
           Cliente: results.cliente || "Não especificado",
           Projeto: results.projeto,
           Minutos: results.minutos || 0,

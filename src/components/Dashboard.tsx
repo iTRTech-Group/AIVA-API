@@ -64,10 +64,21 @@ const parseDate = (dateString: string): Date | null => {
 };
 
 const RenderEntry = ({ entry }: { entry: TimesheetEntry }) => {
+  let formatedData =
+    entry.Data != "Sem Data"
+      ? new Date(entry.Data).toLocaleString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "Sem Data";
+
   return (
     <li key={entry.id} className="mb-2 text-gray-400">
       <strong className="text-gray-300">
-        {entry.Data} - {entry.Nome} (
+        {formatedData} - {entry.Nome} (
         {entry.Cliente ? entry.Cliente : "Não Especificado"} / {entry.Projeto})
         - ({entry.Minutos ? entry.Minutos : 0} min)
       </strong>
@@ -155,7 +166,17 @@ const RenderContent = ({
 
   if (filter === "registros") {
     const grouped = entries.reduce((acc, entry) => {
-      const key = entry.Data || "Sem Data";
+      let key = entry.Data || "Sem Data";
+      if (key != "Sem Data") {
+        console.log(key);
+        const parsedDate = new Date(key);
+        const formattedDate = parsedDate.toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+        key = formattedDate;
+      }
       if (!acc[key]) acc[key] = [];
       acc[key].push(entry);
       return acc;
