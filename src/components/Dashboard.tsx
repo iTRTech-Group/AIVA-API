@@ -7,6 +7,7 @@ import DataFolder from "@/components/DataFolder";
 import { Clock, Users, Briefcase, Calendar, Tag } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { Button } from "./ui/button";
 
 type TimesheetEntry = {
   id: string;
@@ -26,6 +27,30 @@ const formatMinutesToHours = (minutes: number): string => {
   const m = minutes % 60;
   return `${h}h ${m.toString().padStart(2, "0")}m`;
 };
+
+function convertToCSV(data: TimesheetEntry[]): string {
+  if (data.length === 0) return "";
+
+  const headers = Object.keys(data[0]);
+  const rows = data.map((entry) =>
+    headers.map((h) => JSON.stringify((entry as any)[h] ?? "")).join(",")
+  );
+
+  return [headers.join(","), ...rows].join("\n");
+}
+
+function downloadCSV(data: TimesheetEntry[], filename = "timesheet.csv") {
+  const csv = convertToCSV(data);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 const parseDate = (dateString: string): Date | null => {
   if (!dateString || typeof dateString !== "string") return null;
@@ -268,12 +293,20 @@ export default function Dashboard({ initialEntries }: DashboardProps) {
           Bem-vindo,{" "}
           <span className="font-bold">{session?.user?.name || "Usuário"}</span>!
         </h2>
-        <Link
-          href={"/organizations"}
-          className="px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
-        >
-          Voltar
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href={"/organizations"}
+            className="px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+          >
+            Voltar
+          </Link>
+          <button
+            className="cursor-pointer px-4 py-2.5 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300"
+            onClick={() => downloadCSV(initialEntries)}
+          >
+            Baixar CSV
+          </button>
+        </div>
       </div>
 
       <Header onFilter={handleFilter} onClear={handleClearFilter} />
